@@ -6,7 +6,7 @@ let chat = []
 
 function init() {
   console.log(location)
-  createWebSocket(location.protocol === 'https:' ? 'wss://': 'ws://' + location.host, onStatus, onReceive)
+  createWebSocket((location.protocol === 'https:' ? 'wss://': 'ws://') + location.host, onStatus, onReceive)
 }
 
 function keyPressName(evt) {
