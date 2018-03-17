@@ -2,10 +2,11 @@ let webSocket
 let ID
 let me
 let players = {}
-let chat = [];
+let chat = []
 
 function init() {
-  createWebSocket('ws://' + location.host, onStatus, onReceive)
+  console.log(location)
+  createWebSocket(location.protocol === 'https:' ? 'wss://': 'ws://' + location.host, onStatus, onReceive)
 }
 
 function keyPressName(evt) {
@@ -25,44 +26,44 @@ function keyPressChat(evt) {
 }
 
 function onReceive(data) {
-  let ts = new Date().getTime();
-  let msg = JSON.parse(data);
-  // calcLag(msg, ts);
-  console.log("REC", msg);
+  let ts = new Date().getTime()
+  let msg = JSON.parse(data)
+  // calcLag(msg, ts)
+  console.log("REC", msg)
   switch (msg.id) {
     case 'ID':
       // connected and server provides ID
-      ID = msg.data.id;
+      ID = msg.data.id
       doSend('JOIN', {name: 'Nobody', screen: {w: window.innerWidth, h: window.innerHeight}})
-      break;
+      break
     case 'PLAYERS':
       players = msg.data.players
       me = players.find(p => p.id === ID)
       document.getElementById('players').innerHTML = players.map(p => "<li>" + p.name + ' (' + p.screen.w + 'x' + p.screen.h + ')')
-      break;
+      break
     case 'CHAT':
       chat.push(msg.data.chat)
       document.getElementById('chat').innerHTML = chat.join("\n")
-      break;
+      break
     case 'EXIT':
-      break;
+      break
     default:
       console.log('???', msg)
-      break;
+      break
   }
 }
 
 function doSend(msgid, data) {
   if (webSocket && webSocket.readyState === WebSocket.OPEN) {
-    let msg = {id: msgid, from: ID, ts: new Date().getTime(), data: data};
-    console.log("SND ", msg);
-    webSocket.send(JSON.stringify(msg));
+    let msg = {id: msgid, from: ID, ts: new Date().getTime(), data: data}
+    console.log("SND ", msg)
+    webSocket.send(JSON.stringify(msg))
   }
 }
 
 function onStatus(isOnline, ws) {
   document.getElementById('info').innerHTML = 'Hallo Team - ' + (isOnline ? 'Connected!' : 'Disconnected!')
-  webSocket = ws;
+  webSocket = ws
   console.log(isOnline, ws)
 }
 
@@ -72,21 +73,21 @@ function createWebSocket(wsUri, onChange, onReceive) {
 
     ws.onopen = function (evt) {
       onChange(true, ws)
-    };
+    }
 
     ws.onclose = function (evt) {
       onChange(false, null)
-    };
+    }
 
     ws.onerror = function (evt) {
       onChange(false, null)
       console.log('ERR', evt)
-    };
+    }
 
     ws.onmessage = function (evt) {
       // console.log(evt.currentTarget, evt.srcElement, ws)
       onReceive(evt.data)
-    };
+    }
     
   } catch (e) {
     console.log(e)
