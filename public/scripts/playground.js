@@ -3,10 +3,33 @@ let ID
 let me
 let players = {}
 let chat = []
+let layer
+let balls = []
 
 function init() {
   console.log(location)
-  createWebSocket((location.protocol === 'https:' ? 'wss://': 'ws://') + location.host, onStatus, onReceive)
+  createWebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host, onStatus, onReceive)
+  layer = document.getElementById('layer2')
+  console.log(layer)
+  balls.push(createElement(layer, 'circle', {
+    'cx': -600,
+    'cy': -680,
+    'r': 40,
+    'fill': 'blue'
+  }));
+  bounce()
+}
+
+function bounce() {
+  Velocity(balls, { cy: 680}, {
+    duration: 1600,
+    easing: 'easeInSine'
+  })
+  Velocity(balls, { cy: -680}, {
+    duration: 1600,
+    easing: 'easeOutSine',
+    complete: bounce
+  })
 }
 
 function keyPressName(evt) {
@@ -88,8 +111,17 @@ function createWebSocket(wsUri, onChange, onReceive) {
       // console.log(evt.currentTarget, evt.srcElement, ws)
       onReceive(evt.data)
     }
-    
+
   } catch (e) {
     console.log(e)
   }
+}
+
+function createElement(parent, type, attrs) {
+  let elem = document.createElementNS(parent.namespaceURI, type)
+  for (let attr in attrs) {
+    elem.setAttribute(attr, attrs[attr])
+  }
+  parent.appendChild(elem)
+  return elem
 }
