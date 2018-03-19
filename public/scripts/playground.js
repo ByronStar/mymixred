@@ -34,7 +34,7 @@ function bounce() {
 
 function keyPressName(evt) {
   let name = document.getElementById('name').value
-  if (event.keyCode === 13 && name !== "" && name !== me.name) {
+  if (evt.keyCode === 13 && name !== "" && name !== me.name) {
     me.name = name
     doSend('UPDATE', {player: me})
   }
@@ -42,7 +42,7 @@ function keyPressName(evt) {
 
 function keyPressChat(evt) {
   let msg = document.getElementById('message').value
-  if (event.keyCode === 13 && msg !== "") {
+  if (evt.keyCode === 13 && msg !== "") {
     doSend('CHAT', {chat: me.name + ': ' + msg})
     document.getElementById('message').value = ""
   }
