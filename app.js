@@ -90,7 +90,7 @@ function broadcast(server, message) {
   });
 }
 
-function forward(server, message, active) {
+function forward(message, active) {
   console.log('%s FWD <%s> (%d clients)', new Date().getTime(), message, active.length);
   active.forEach(function each(id) {
     try {
@@ -128,6 +128,15 @@ function handleMessage(server, message, id, client) {
             from: 'SERVER',
             data: {players: players}
           }));
+        break;
+      case 'PUSH':
+        if (players.find(p => p.id === msg.data.to)) {
+          forward(message, [msg.data.to]);
+        } else {
+          // bounce back
+          console.log('bounce')
+          forward(message, [msg.from]);
+        }
         break;
       case 'CHAT':
         broadcast(server, message);

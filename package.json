@@ -8,6 +8,7 @@
 	"dependencies": {
 		"cfenv": "1.0.x",
 		"express": "4.15.x",
+		"matter-js": "^0.14.1",
 		"ws": "^1.1.5"
 	},
 	"repository": {},
