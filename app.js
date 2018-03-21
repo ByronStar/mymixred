@@ -26,7 +26,8 @@ let players = []
 // track active IP Addresses
 let active = {}
 //
-let balls = {}
+let balls = []
+let ballId = 0
 
 // create a new express server
 let app = express()
@@ -74,12 +75,6 @@ httpServer.on('request', app)
 httpServer.listen(appEnv.port, function () {
   console.log("httpServer starting on " + appEnv.url)
 })
-
-// start server on the specified port and binding host
-// app.listen(appEnv.port, '0.0.0.0', function () {
-//   // print a message when the server starts listening
-//   console.log("server starting on " + appEnv.url)
-// })
 
 function broadcast(server, message) {
   console.log('%s SND <%s> (%d clients)', new Date().getTime(), message, server.clients.length)
@@ -132,15 +127,23 @@ function handleMessage(server, message, id, client) {
           }))
         break
       case 'ADD':
-        balls[msg.data.id] = msg.data.attr
+        if (msg.data.attr.id === undefined) {
+          msg.data.attr.id = ballId++
+          balls.push({attr: msg.data.attr, id: id, act: id})
+          forward(JSON.stringify({
+            id: 'PUSH',
+            from: 'SERVER',
+            data: {attr: msg.data.attr}
+          }), [id])
+        }
         break
       case 'PUSH':
-        if (players.find(p => p.id === msg.data.to)) {
-          forward(message, [msg.data.to])
-        } else {
-          // bounce back
-          console.log('bounce')
-          forward(message, [msg.from])
+        if (players.find(p => p.id === balls[msg.data.attr.id].id)) {
+          // only forward balls of active players
+          let to = players[(players.length + players.findIndex(p => p.id === id) + (msg.data.attr.dx > 0 ? 1 : -1)) % players.length].id
+          balls[msg.data.attr.id].attr = msg.data.attr
+          balls[msg.data.attr.id].act = to
+          forward(message, [to])
         }
         break
       case 'CHAT':
@@ -172,7 +175,21 @@ function handleClose(server, id) {
       data: {id: id, players: players}
     }))
   if (players.length > 0) {
-    forward(JSON.stringify({id: 'PUSH', data: {attr: balls[id], to: players[idx % players.length].id}}), [players[idx % players.length].id])
+    let to = players[(players.length + idx - 1) % players.length].id
+    balls.forEach(b => {
+      if (b.act === id && b.id !== id) {
+        b.act = to
+        forward(JSON.stringify({
+          id: 'PUSH',
+          from: 'SERVER',
+          data: {attr: b.attr}
+        }), [to])
+      }
+    })
+  } else {
+    // reset balls info
+    balls = []
+    ballId = 0
   }
 }
 

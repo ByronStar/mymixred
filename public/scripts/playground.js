@@ -8,12 +8,41 @@ let balls = []
 let engineID = null
 let xMax = 1280
 let yMax = 720
+let paddle
+let pos = -80
 
 function init() {
   console.log(location)
   createWebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host, onStatus, onReceive)
   layer = document.getElementById('layer2')
   engineID = setInterval(engine, 20, {balls: balls})
+  paddle = createElement(layer, 'rect', {
+    'x': -20,
+    'y': pos,
+    'width': 40,
+    'height': 160,
+    'fill': 'pink'
+  })
+  document.addEventListener('keydown', function (evt) {
+    switch (evt.key) {
+      case 'y':
+      case 'ArrowUp':
+        if (pos > -yMax) {
+          pos -= 15
+          paddle.setAttribute('y', pos)
+        }
+        break
+      case 'x':
+      case 'ArrowDown':
+        if (pos < yMax - 160) {
+          pos += 15
+          paddle.setAttribute('y', pos)
+        }
+        break
+      default:
+        console.log(evt.key)
+    }
+  })
 }
 
 function Ball(attr) {
@@ -35,15 +64,26 @@ function Ball(attr) {
     this.label.textContent = this.attr.name
   }
 
-  this.countUp = function () {
-    this.attr.count++
-    this.info.textContent = this.attr.count
-  }
-
   this.moveBy = function (dx, dy) {
     this.attr.x += dx
     this.attr.y += dy
     this.g.setAttribute('transform', 'translate(' + this.attr.x + ',' + this.attr.y + ')')
+  }
+
+  this.collision = function (ball) {
+    let attr = this.attr
+    let hit = ball.attr
+    if (hit.id !== attr.id) {
+      const d = Math.sqrt(Math.pow(hit.x - attr.x, 2) + Math.pow(hit.y - attr.y, 2))
+      if (d < hit.r + attr.r) {
+        const c = {x: (attr.r * attr.r + d * d - hit.r * hit.r) / (2 * d), y: 0}
+        c.y = Math.sqrt(attr.r * attr.r - c.x * c.x)
+        console.log(attr.name, hit.name, c)
+        // clearInterval(engineID)
+      }
+      return d < hit.r + attr.r
+    }
+    return false
   }
 }
 
@@ -53,16 +93,18 @@ function engine(cfg) {
     if (attr.y - attr.r + attr.dy <= -yMax || attr.y + attr.r + attr.dy >= yMax) {
       attr.dy = -attr.dy
     }
-    if (attr.dx < 0 && attr.x - attr.r + attr.dx <= -xMax && attr.x - attr.r > -xMax || attr.dx > 0 && attr.x + attr.r + attr.dx >= xMax && attr.x + attr.r > xMax) {
-      // console.log('ADD', attr.x)
-      doSend('PUSH', {attr: ball.attr, to: players[(players.length + players.findIndex(p => p.id === ID) - 1) % players.length].id})
+    if (attr.dx < 0 && attr.x - attr.r + attr.dx <= -xMax && attr.x - attr.r > -xMax || attr.dx > 0 && attr.x + attr.r + attr.dx >= xMax && attr.x + attr.r < xMax) {
+      // push ball as soon as it will touch the outer border
+      doSend('PUSH', {attr: ball.attr})
       // clearInterval(engineID)
     } else {
-      if (attr.x + attr.r <= -xMax) {
-        // console.log('DEL', attr.x)
+      if (attr.dx < 0 && attr.x + attr.r <= -xMax || attr.dx > 0 && attr.x - attr.r >= xMax) {
+        // remove ball as soon as it is beyond the outer border
         balls.splice(i, 1)
+        return
       }
     }
+    cfg.balls.forEach(hit => ball.collision(hit))
     ball.moveBy(attr.dx, attr.dy)
   })
 }
@@ -92,9 +134,7 @@ function keyPressName(evt) {
   let name = document.getElementById('name').value
   if (evt.keyCode === 13 && name !== "" && name !== me.name) {
     if (me.name === 'Nobody') {
-      const ball = new Ball({name: name, x: 0, y: Math.random() * 1400 - 700, dx: -10, dy: Math.round(Math.random() * 70 - 35), r: 60, color: getRandomColor(), count: 0})
-      balls.push(ball)
-      doSend('ADD', {attr: ball.attr, id: ID})
+      doSend('ADD', {attr: {name: name, x: 0, y: Math.random() * 1400 - 700, dx: Math.random() > 0.5 ? 6 : -6, dy: Math.round(Math.random() * 70 - 35), r: 60, color: getRandomColor(), count: 0}})
     }
     me.name = name
     doSend('UPDATE', {player: me})
@@ -127,6 +167,7 @@ function onReceive(data) {
       break
     case 'PUSH':
       msg.data.attr.x = msg.data.attr.dx < 0 ? xMax + msg.data.attr.r : -xMax - msg.data.attr.r
+      msg.data.attr.count++
       balls.push(new Ball(msg.data.attr))
       break
     case 'CHAT':
