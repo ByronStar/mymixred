@@ -24,25 +24,32 @@
     </style>
 
     <script>
+      let sym = [
+        [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        [0, 2, 4, 6, 8, 1, 3, 5, 7],
+        [0, 3, 6, 1, 4, 7, 2, 5, 8]
+      ]
+
       let reel0
       let off = 1800
       let step = 40
       let intId
       let reel = []
-      let steps = [1 + (9 + Math.round(Math.random() * 10)) * 200 / step, 1 + (9 + Math.round(Math.random() * 10)) * 200 / step, 1 + (9 + Math.round(Math.random() * 10)) * 200 / step]
+      let steps = [Math.floor(Math.random() * 9), Math.floor(Math.random() * 9), Math.floor(Math.random() * 9)]
+//      let steps = [sym[0].indexOf(1), sym[1].indexOf(2), sym[2].indexOf(3)]
       console.log(steps)
+      steps = steps.map((r, i) => 200 / step * (9 - sym[i].indexOf(r)) + i * 1800/step + 2)
 
       function init() {
         reel.push(document.getElementById('reel0'))
         reel.push(document.getElementById('reel1'))
         reel.push(document.getElementById('reel2'))
-        intId = setInterval(roll, 30)
+        intId = setInterval(roll, 20)
       }
 
       function roll() {
         if (off < step) {
           off = 1800
-//          clearInterval(intId)
         }
         let finish = true
         steps.forEach((r, i) => {
@@ -54,7 +61,6 @@
         })
         if (finish) {
           clearInterval(intId)
-          console.log(steps)
         } else {
           off -= step
         }
