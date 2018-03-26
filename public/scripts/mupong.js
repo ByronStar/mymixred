@@ -109,14 +109,14 @@ function init() {
 
   document.addEventListener('keydown', function (evt) {
     switch (evt.key) {
-      case 'y':
       case 'ArrowUp':
+        evt.preventDefault();
         if (paddle.position.y > 100) {
           Matter.Body.setPosition(paddle, {x: paddle.position.x, y: paddle.position.y - 20});
         }
         break
-      case 'x':
       case 'ArrowDown':
+        evt.preventDefault();
         if (paddle.position.y < window.innerHeight - 100) {
           Matter.Body.setPosition(paddle, {x: paddle.position.x, y: paddle.position.y + 20});
         }
@@ -190,12 +190,15 @@ function onReceive(data) {
       document.getElementById('players').innerHTML = players.map(p => "<li>" + p.name + ' (' + p.screen.w + 'x' + p.screen.h + ')')
       break
     case 'PUSH':
+      const ball = new Ball(msg.data.attr)
+      balls.push(ball)
       if (0 === paddle.collisionFilter.group) {
         paddle.collisionFilter.group = -msg.data.attr.id - 1
         paddle.render.fillStyle = msg.data.attr.color
         console.log(paddle.collisionFilter)
+        doSend('CHAT', {chat: JSON.stringify(paddle.collisionFilter)})
+        doSend('CHAT', {chat: JSON.stringify(ball.ball.collisionFilter)})
       }
-      balls.push(new Ball(msg.data.attr))
       break
     case 'CHAT':
       chat.push(msg.data.chat)

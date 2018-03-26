@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>NodeJS MultiUser Application</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="author" content="ByronStar">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="stylesheets/style.css">
+
+    <style>
+        img {
+            object-fit: none;
+            margin: 5px;
+            width: 165px;
+            height: 300px;
+        }
+    </style>
+
+    <script>
+      let reel0
+      let off = 1800
+      let step = 40
+      let intId
+      let reel = []
+      let steps = [1 + (9 + Math.round(Math.random() * 10)) * 200 / step, 1 + (9 + Math.round(Math.random() * 10)) * 200 / step, 1 + (9 + Math.round(Math.random() * 10)) * 200 / step]
+      console.log(steps)
+
+      function init() {
+        reel.push(document.getElementById('reel0'))
+        reel.push(document.getElementById('reel1'))
+        reel.push(document.getElementById('reel2'))
+        intId = setInterval(roll, 30)
+      }
+
+      function roll() {
+        if (off < step) {
+          off = 1800
+//          clearInterval(intId)
+        }
+        let finish = true
+        steps.forEach((r, i) => {
+          if (r > 0) {
+            finish = false
+            reel[i].setAttribute('style', "object-position: 0 -" + off + "px;")
+            steps[i]--
+          }
+        })
+        if (finish) {
+          clearInterval(intId)
+          console.log(steps)
+        } else {
+          off -= step
+        }
+      }
+    </script>
+
+</head>
+
+<body onload="init()">
+<div style="margin: 200px 0 0 200px">
+    <img id="reel0" style="object-position: 0 -0px;" src="images/reel0.png">
+    <img id="reel1" style="object-position: 0 -0px;" src="images/reel1.png">
+    <img id="reel2" style="object-position: 0 -0px;" src="images/reel2.png">
+</div>
+</body>
+</html>
