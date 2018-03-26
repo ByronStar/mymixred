@@ -36,9 +36,9 @@
       let intId
       let reel = []
       let steps = [Math.floor(Math.random() * 9), Math.floor(Math.random() * 9), Math.floor(Math.random() * 9)]
-//      let steps = [sym[0].indexOf(1), sym[1].indexOf(2), sym[2].indexOf(3)]
+      //      let steps = [sym[0].indexOf(1), sym[1].indexOf(2), sym[2].indexOf(3)]
       console.log(steps)
-      steps = steps.map((r, i) => 200 / step * (9 - sym[i].indexOf(r)) + i * 1800/step + 2)
+      steps = steps.map((r, i) => 200 / step * (9 - sym[i].indexOf(r)) + i * 1800 / step + 2)
 
       function init() {
         reel.push(document.getElementById('reel0'))
@@ -71,9 +71,21 @@
 
 <body onload="init()">
 <div style="margin: 200px 0 0 200px">
-    <img id="reel0" style="object-position: 0 -0px;" src="images/reel0.png">
-    <img id="reel1" style="object-position: 0 -0px;" src="images/reel1.png">
-    <img id="reel2" style="object-position: 0 -0px;" src="images/reel2.png">
+    <div style="position:relative;display: inline-block;">
+        <img id="reel0" style="object-position: 0 -0px;" src="images/reel0.png">
+        <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+    </div>
+    <div style="position:relative;display: inline-block;">
+        <img id="reel1" style="object-position: 0 -0px;" src="images/reel1.png">
+        <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+    </div>
+    <div style="position:relative;display: inline-block;">
+        <img id="reel2" style="object-position: 0 -0px;" src="images/reel2.png">
+        <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+    </div>
+    <div>
+        <button>Spin</button>
+    </div>
 </div>
 </body>
 </html>
