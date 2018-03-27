@@ -12,14 +12,56 @@
     <meta name="author" content="ByronStar">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="stylesheets/style.css">
+    <!--<link rel="stylesheet" href="stylesheets/style.css">-->
 
     <style>
-        img {
+        body, html {
+            background-color: #b71f2c;
+            width: 100%;
+            height: 100%;
+            margin: 4px;
+            font-family: "Ubuntu", sans-serif;
+            color: #ffffff;
+        }
+
+        #frame {
+            display: inline-block;
+            padding: 20px;
+            background-color: #fe9720;
+        }
+
+        td {
+            text-align: right;
+        }
+
+        .preview {
+            width: 55px;
+        }
+
+        #frame img {
             object-fit: none;
             margin: 5px;
             width: 165px;
             height: 300px;
+        }
+
+        .push {
+            margin: 5px;
+            height: 40px;
+            width: 60px;
+            line-height: 40px;
+            border: 5px outset #b57d00;
+            border-radius: 8px;
+            color: #7d4d00;
+            text-shadow: 1px 1px #ffff00;
+            background-color: #fe9720;
+            cursor: pointer;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .push:hover {
+            background-color: #ffff00;
         }
     </style>
 
@@ -29,63 +71,109 @@
         [0, 2, 4, 6, 8, 1, 3, 5, 7],
         [0, 3, 6, 1, 4, 7, 2, 5, 8]
       ]
+      // 729 possibilities
+      let prop = 9 * 9 * 9
+      let payout = [
+        {s: [5, 5, 5], c: 400, p: 1 / prop},
+        {s: [5, -1, 5], c: 40, p: 8 / prop},
+        {s: [0, 0, 0], c: 200, p: 1 / prop}
+      ]
 
-      let reel0
-      let off = 1800
-      let step = 40
-      let intId
-      let reel = []
-      let steps = [Math.floor(Math.random() * 9), Math.floor(Math.random() * 9), Math.floor(Math.random() * 9)]
-      //      let steps = [sym[0].indexOf(1), sym[1].indexOf(2), sym[2].indexOf(3)]
-      console.log(steps)
-      steps = steps.map((r, i) => 200 / step * (9 - sym[i].indexOf(r)) + i * 1800 / step + 2)
+      let intId = null
+      let step = 50
+      let height = 200
+      let off = []
+      let reels = []
+      let steps
 
       function init() {
-        reel.push(document.getElementById('reel0'))
-        reel.push(document.getElementById('reel1'))
-        reel.push(document.getElementById('reel2'))
-        intId = setInterval(roll, 20)
+        reels.push(document.getElementById('reel0'))
+        reels.push(document.getElementById('reel1'))
+        reels.push(document.getElementById('reel2'))
+        reels.forEach((r, i) => {
+          off[i] = sym[i].length * height
+          r.setAttribute('style', "object-position: 0 -" + (off[i] - height / 4) + "px;")
+        })
+        let tbl = document.getElementById('payout')
+        payout.forEach(o => {
+          let row = tbl.insertRow(-1)
+          let cell = row.insertCell(-1)
+          cell.innerHTML = o.s.reduce((t, v) => t + '<img class="preview" src="images/sym' + (v < 0 ? 'x' : v) + '.png">', '')
+          cell = row.insertCell(-1)
+          cell.innerHTML = o.c
+        })
+      }
+
+      function spin() {
+        if (null === intId) {
+          let prev = document.getElementsByClassName('preview')
+          let bet = sym.map(s => Math.floor(Math.random() * s.length))
+/*
+          bet.forEach((b, i) => {
+            prev[i].setAttribute('src', 'images/sym' + b + '.png')
+          })
+*/
+          console.log(bet)
+          // pixel to be moved up from offset divided by step size
+          steps = bet.map((s, i) => (off[i] + (sym[i].length - sym[i].indexOf(s)) * height) / step + i * sym[i].length * height / step)
+          intId = setInterval(roll, 20)
+        }
       }
 
       function roll() {
-        if (off < step) {
-          off = 1800
-        }
         let finish = true
         steps.forEach((r, i) => {
-          if (r > 0) {
+          if (r >= 0) {
+            if (off[i] < step) {
+              off[i] = sym[i].length * height
+            }
             finish = false
-            reel[i].setAttribute('style', "object-position: 0 -" + off + "px;")
+            reels[i].setAttribute('style', "object-position: 0 -" + (off[i] - height / 4) + "px;")
+            off[i] -= step
             steps[i]--
           }
         })
         if (finish) {
           clearInterval(intId)
-        } else {
-          off -= step
+          console.log(off)
+          intId = null
         }
       }
     </script>
-
 </head>
 
 <body onload="init()">
-<div style="margin: 200px 0 0 200px">
-    <div style="position:relative;display: inline-block;">
-        <img id="reel0" style="object-position: 0 -0px;" src="images/reel0.png">
-        <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+<div style="margin: 200px 0 0 200px;">
+<!--
+    <div>
+        <img class="preview" src="images/sym0.png">
+        <img class="preview" src="images/sym0.png">
+        <img class="preview" src="images/sym0.png">
     </div>
-    <div style="position:relative;display: inline-block;">
-        <img id="reel1" style="object-position: 0 -0px;" src="images/reel1.png">
-        <img style="position: absolute;top:0;left:0;" src="images/slot.png">
-    </div>
-    <div style="position:relative;display: inline-block;">
-        <img id="reel2" style="object-position: 0 -0px;" src="images/reel2.png">
-        <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+-->
+    <div id="frame">
+        <div style="position:relative;display: inline-block;">
+            <img id="reel0" style="object-position: 0 -0px;" src="images/reel0.png">
+            <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+        </div>
+        <div style="position:relative;display: inline-block;">
+            <img id="reel1" style="object-position: 0 -0px;" src="images/reel1.png">
+            <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+        </div>
+        <div style="position:relative;display: inline-block;">
+            <img id="reel2" style="object-position: 0 -0px;" src="images/reel2.png">
+            <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+        </div>
     </div>
     <div>
-        <button>Spin</button>
+        <div class="push" onclick="spin()">Spin</div>
     </div>
+    <table id="payout">
+        <tr>
+            <th>Roll</th>
+            <th>Payout</th>
+        </tr>
+    </table>
 </div>
 </body>
 </html>

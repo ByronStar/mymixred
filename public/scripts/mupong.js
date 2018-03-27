@@ -187,7 +187,7 @@ function onReceive(data) {
     case 'PLAYERS':
       players = msg.data.players
       me = players.find(p => p.id === ID)
-      document.getElementById('players').innerHTML = players.map(p => "<li>" + p.name + ' (' + p.screen.w + 'x' + p.screen.h + ')')
+      document.getElementById('players').innerHTML = players.map(p => '<li>' + p.name + ' (' + p.screen.w + 'x' + p.screen.h + ')')
       break
     case 'PUSH':
       const ball = new Ball(msg.data.attr)
@@ -196,8 +196,8 @@ function onReceive(data) {
         paddle.collisionFilter.group = -msg.data.attr.id - 1
         paddle.render.fillStyle = msg.data.attr.color
         console.log(paddle.collisionFilter)
-        doSend('CHAT', {chat: JSON.stringify(paddle.collisionFilter)})
-        doSend('CHAT', {chat: JSON.stringify(ball.ball.collisionFilter)})
+        // doSend('CHAT', {chat: JSON.stringify(paddle.collisionFilter)})
+        // doSend('CHAT', {chat: JSON.stringify(ball.ball.collisionFilter)})
       }
       break
     case 'CHAT':
