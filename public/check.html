@@ -21,7 +21,7 @@
             height: 100%;
             margin: 4px;
             font-family: "Ubuntu", sans-serif;
-            color: #ffffff;
+            color: #550000;
         }
 
         #frame {
@@ -30,8 +30,31 @@
             background-color: #fe9720;
         }
 
-        td {
+        #info {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            margin-left: auto;
+            color: #550000;
+            text-shadow: 0 0 5px #ffffff, 0 0 10px #ffff00, 0 0 15px #ffff00, 0 0 20px #f87987, 0 0 30px #ff2d95, 0 0 40px #ff2d95, 0 0 50px #ff2d95, 0 0 75px #ff2d95;
+            text-align: center;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        #payout {
+            margin: auto;
+            margin-top: 20px;
             text-align: right;
+        }
+
+        #payout td {
+            padding: 0;
+            margin: 0;
+            text-align: right;
+        }
+
+        #payout img {
+            width: 30px;
         }
 
         .preview {
@@ -46,15 +69,19 @@
         }
 
         .push {
+            display: inline-block;
             margin: 5px;
-            height: 40px;
-            width: 60px;
-            line-height: 40px;
+            height: 35px;
+            width: 80px;
+            line-height: 35px;
             border: 5px outset #b57d00;
             border-radius: 8px;
-            color: #7d4d00;
-            text-shadow: 1px 1px #ffff00;
+            /*color: #7d4d00;*/
+            /*text-shadow: 1px 1px #ffff00;*/
+            color: #550000;
+            text-shadow: 0 0 5px #ffffff, 0 0 10px #ffff00, 0 0 15px #ffff00, 0 0 20px #f87987, 0 0 30px #ff2d95, 0 0 40px #ff2d95, 0 0 50px #ff2d95, 0 0 75px #ff2d95;
             background-color: #fe9720;
+            font-weight: bold;
             cursor: pointer;
             text-align: center;
             vertical-align: middle;
@@ -74,9 +101,21 @@
       // 729 possibilities
       let prop = 9 * 9 * 9
       let payout = [
-        {s: [5, 5, 5], c: 400, p: 1 / prop},
-        {s: [5, -1, 5], c: 40, p: 8 / prop},
-        {s: [0, 0, 0], c: 200, p: 1 / prop}
+        {s: [5, 5, 5], w: 40, p: 1 / prop}, // seven
+        {s: [4, 4, 4], w: 20, p: 1 / prop}, // bell
+        {s: [8, 8, 8], w: 10, p: 1 / prop}, // grape
+        {s: [7, 7, 7], w: 8, p: 1 / prop}, // apple
+        {s: [6, 6, 6], w: 7, p: 1 / prop}, // lemon
+        {s: [2, 2, 2], w: 6, p: 1 / prop}, // plum
+        {s: [5, -1, 5], w: 5, p: 8 / prop},
+        {s: [1, 1, 1], w: 4, p: 1 / prop}, // melon
+        {s: [-1, 5, -1], w: 3, p: 8 / prop},
+        {s: [0, 0, 0], w: 2, p: 1 / prop}, // cherry
+        {s: [3, 3, 3], g: 20, p: 1 / prop}, // scatter
+        {s: [3, -1, 3], g: 10, p: 9 / prop}, // scatter
+        {s: [3, -1, -1], g: 1, p: 81 / prop}, // scatter
+        {s: [-1, 3, -1], g: 1, p: 81 / prop}, // scatter
+        {s: [-1, -1, 3], g: 1, p: 81 / prop} // scatter
       ]
 
       let intId = null
@@ -85,6 +124,15 @@
       let off = []
       let reels = []
       let steps
+      let info
+      let win
+      let state = [10, 1, 0, 0]
+
+      let showState = function () {
+        state.forEach((v, i) => {
+          info.rows[1].cells[i].innerHTML = v
+        })
+      }
 
       function init() {
         reels.push(document.getElementById('reel0'))
@@ -94,28 +142,65 @@
           off[i] = sym[i].length * height
           r.setAttribute('style', "object-position: 0 -" + (off[i] - height / 4) + "px;")
         })
+        info = document.getElementById('info')
+        showState()
         let tbl = document.getElementById('payout')
-        payout.forEach(o => {
-          let row = tbl.insertRow(-1)
-          let cell = row.insertCell(-1)
-          cell.innerHTML = o.s.reduce((t, v) => t + '<img class="preview" src="images/sym' + (v < 0 ? 'x' : v) + '.png">', '')
-          cell = row.insertCell(-1)
-          cell.innerHTML = o.c
+        payout.forEach((p, i) => {
+          if (!tbl.rows[i % 5 + 1]) {
+            tbl.insertRow(-1)
+          }
+          let cell = tbl.rows[i % 5 + 1].insertCell(-1)
+          cell.innerHTML = p.s.reduce((t, v) => t + '<img src="images/sym' + (v < 0 ? 'x' : v) + '.png">', '')
+          cell = tbl.rows[i % 5 + 1].insertCell(-1)
+          if (p.w) {
+            cell.innerHTML = p.w
+          } else {
+            cell.innerHTML = p.g
+          }
         })
       }
 
+      function credit() {
+        if (state[0] === 0) {
+          state[0] = 10
+          showState()
+        }
+      }
+
+      function paywin() {
+        if (state[0] === 0) {
+          state[0] = state[2]
+          state[2] = 0
+          showState()
+        }
+      }
+
+      function bet(v) {
+        if (v < 0 && state[1] > 1) {
+          state[1] += v
+          showState()
+        }
+        if (v > 0 && state[1] < 4) {
+          state[1] += v
+          showState()
+        }
+      }
+
       function spin() {
-        if (null === intId) {
+        if (null === intId && state[0] >= state[1]) {
           let prev = document.getElementsByClassName('preview')
-          let bet = sym.map(s => Math.floor(Math.random() * s.length))
-/*
-          bet.forEach((b, i) => {
-            prev[i].setAttribute('src', 'images/sym' + b + '.png')
-          })
-*/
-          console.log(bet)
+          win = sym.map(s => Math.floor(Math.random() * s.length))
+          /*
+                    bet.forEach((b, i) => {
+                      prev[i].setAttribute('src', 'images/sym' + b + '.png')
+                    })
+          */
+          console.log(win)
           // pixel to be moved up from offset divided by step size
-          steps = bet.map((s, i) => (off[i] + (sym[i].length - sym[i].indexOf(s)) * height) / step + i * sym[i].length * height / step)
+          steps = win.map((s, i) => (off[i] + (sym[i].length - sym[i].indexOf(s)) * height) / step + i * sym[i].length * height / step)
+          state[0] -= state[1]
+          state[3]++
+          showState()
           intId = setInterval(roll, 20)
         }
       }
@@ -135,7 +220,18 @@
         })
         if (finish) {
           clearInterval(intId)
-          console.log(off)
+          const pay = payout.find(p => {
+            return win.every((w, i) => w === p.s[i] || p.s[i] === -1)
+          })
+          if (pay) {
+            console.log(pay)
+            if (pay.w) {
+              state[2] += pay.w * state[1]
+            } else {
+              state[0] += pay.g
+            }
+            showState()
+          }
           intId = null
         }
       }
@@ -143,37 +239,70 @@
 </head>
 
 <body onload="init()">
-<div style="margin: 200px 0 0 200px;">
-<!--
-    <div>
-        <img class="preview" src="images/sym0.png">
-        <img class="preview" src="images/sym0.png">
-        <img class="preview" src="images/sym0.png">
-    </div>
--->
-    <div id="frame">
-        <div style="position:relative;display: inline-block;">
-            <img id="reel0" style="object-position: 0 -0px;" src="images/reel0.png">
-            <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+<div style="margin-top: 100px;text-align: center;width: 800px;">
+    <div style="display: inline-block">
+        <!--
+            <div>
+                <img class="preview" src="images/sym0.png">
+                <img class="preview" src="images/sym0.png">
+                <img class="preview" src="images/sym0.png">
+            </div>
+        -->
+        <table id="info" border="2" cellpadding="5" align="center">
+            <col width="120">
+            <col width="120">
+            <col width="120">
+            <tr>
+                <th>Credit</th>
+                <th>Bet</th>
+                <th>Win</th>
+                <th>Plays</th>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+        </table>
+        <div id="frame">
+            <div style="position:relative;display: inline-block;">
+                <img id="reel0" style="object-position: 0 -0px;" src="images/reel0.png">
+                <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+            </div>
+            <div style="position:relative;display: inline-block;">
+                <img id="reel1" style="object-position: 0 -0px;" src="images/reel1.png">
+                <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+            </div>
+            <div style="position:relative;display: inline-block;">
+                <img id="reel2" style="object-position: 0 -0px;" src="images/reel2.png">
+                <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+            </div>
         </div>
-        <div style="position:relative;display: inline-block;">
-            <img id="reel1" style="object-position: 0 -0px;" src="images/reel1.png">
-            <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+        <div style="margin-top: 20px;">
+            <div class="push" onclick="spin()">SPIN</div>
+            <div class="push" onclick="bet(-1)">BET -</div>
+            <div class="push" onclick="bet(1)">BET +</div>
+            <!--<div class="push" onclick="credit()">CREDIT</div>-->
+            <div class="push" onclick="paywin()">PAY</div>
         </div>
-        <div style="position:relative;display: inline-block;">
-            <img id="reel2" style="object-position: 0 -0px;" src="images/reel2.png">
-            <img style="position: absolute;top:0;left:0;" src="images/slot.png">
-        </div>
+        <table id="payout" border="0">
+            <col width="100">
+            <col width="40">
+            <col width="100">
+            <col width="40">
+            <col width="100">
+            <col width="40">
+            <tr align="center">
+                <th>Roll</th>
+                <th>Win</th>
+                <th>Roll</th>
+                <th>Win</th>
+                <th>Roll</th>
+                <th>Free</th>
+            </tr>
+        </table>
     </div>
-    <div>
-        <div class="push" onclick="spin()">Spin</div>
-    </div>
-    <table id="payout">
-        <tr>
-            <th>Roll</th>
-            <th>Payout</th>
-        </tr>
-    </table>
 </div>
 </body>
 </html>
