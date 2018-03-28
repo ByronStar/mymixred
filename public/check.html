@@ -99,23 +99,30 @@
         [0, 3, 6, 1, 4, 7, 2, 5, 8]
       ]
       // 729 possibilities
-      let prop = 9 * 9 * 9
+      let perms = sym.reduce((t, v) => t * v.length, 1)
+      let payRate
       let payout = [
-        {s: [5, 5, 5], w: 40, p: 1 / prop}, // seven
-        {s: [4, 4, 4], w: 20, p: 1 / prop}, // bell
-        {s: [8, 8, 8], w: 10, p: 1 / prop}, // grape
-        {s: [7, 7, 7], w: 8, p: 1 / prop}, // apple
-        {s: [6, 6, 6], w: 7, p: 1 / prop}, // lemon
-        {s: [2, 2, 2], w: 6, p: 1 / prop}, // plum
-        {s: [5, -1, 5], w: 5, p: 8 / prop},
-        {s: [1, 1, 1], w: 4, p: 1 / prop}, // melon
-        {s: [-1, 5, -1], w: 3, p: 8 / prop},
-        {s: [0, 0, 0], w: 2, p: 1 / prop}, // cherry
-        {s: [3, 3, 3], g: 20, p: 1 / prop}, // scatter
-        {s: [3, -1, 3], g: 10, p: 9 / prop}, // scatter
-        {s: [3, -1, -1], g: 1, p: 81 / prop}, // scatter
-        {s: [-1, 3, -1], g: 1, p: 81 / prop}, // scatter
-        {s: [-1, -1, 3], g: 1, p: 81 / prop} // scatter
+        {c: 0, s: [5, 5, 5], w: 100, p: 1 / perms}, // seven
+        {c: 0, s: [4, 4, 4], w: 40, p: 1 / perms}, // bell
+        {c: 0, s: [8, 8, 8], w: 30, p: 1 / perms}, // grape
+        {c: 0, s: [6, 6, 6], w: 20, p: 1 / perms}, // lemon
+        {c: 0, s: [8, 6, 7], w: 13, p: 1 / perms}, // mix
+        {c: 0, s: [2, 1, 0], w: 13, p: 1 / perms}, // mix
+        {c: 0, s: [7, 7, 7], w: 10, p: 1 / perms}, // apple
+        {c: 0, s: [2, 2, 2], w: 8, p: 1 / perms}, // plum
+        {c: 0, s: [4, -1, 4], w: 7, p: 8 / perms}, // bell
+        {c: 0, s: [1, 1, 1], w: 6, p: 1 / perms}, // melon
+        {c: 0, s: [5, -1, 5], w: 5, p: 8 / perms},// seven
+        {c: 0, s: [0, 0, 0], w: 4, p: 1 / perms}, // cherry
+        {c: 0, s: [-1, 5, -1], w: 1, p: 79 / perms},// seven
+        {c: 0, s: [0, -1, 0], w: 1, p: 79 / perms}, // cherry
+        {c: 0, s: [3, 3, 3], g: 10, p: 1 / perms}, // scatter
+        {c: 0, s: [3, -1, 3], g: 5, p: 8 / perms}, // scatter
+        {c: 0, s: [3, 3, -1], g: 2, p: 79 / perms}, // scatter
+        {c: 0, s: [-1, 3, 3], g: 2, p: 80 / perms}, // scatter
+        {c: 0, s: [3, -1, -1], g: 1, p: 79 / perms}, // scatter
+        {c: 0, s: [-1, 3, -1], g: 1, p: 80 / perms}, // scatter
+        {c: 0, s: [-1, -1, 3], g: 1, p: 79 / perms} // scatter
       ]
 
       let intId = null
@@ -146,18 +153,19 @@
         showState()
         let tbl = document.getElementById('payout')
         payout.forEach((p, i) => {
-          if (!tbl.rows[i % 5 + 1]) {
+          if (!tbl.rows[i % 7 + 1]) {
             tbl.insertRow(-1)
           }
-          let cell = tbl.rows[i % 5 + 1].insertCell(-1)
+          let cell = tbl.rows[i % 7 + 1].insertCell(-1)
           cell.innerHTML = p.s.reduce((t, v) => t + '<img src="images/sym' + (v < 0 ? 'x' : v) + '.png">', '')
-          cell = tbl.rows[i % 5 + 1].insertCell(-1)
+          cell = tbl.rows[i % 7 + 1].insertCell(-1)
           if (p.w) {
             cell.innerHTML = p.w
           } else {
             cell.innerHTML = p.g
           }
         })
+        payCheck(1000)
       }
 
       function credit() {
@@ -186,6 +194,23 @@
         }
       }
 
+      function payCheck(big) {
+        for (g = 0; g < perms * big; g++) {
+          win = sym.map(s => Math.floor(Math.random() * s.length))
+          const pay = payout.find(p => {
+            return win.every((w, i) => w === p.s[i] || p.s[i] === -1)
+          })
+          if (pay) {
+            pay.c++
+          }
+        }
+        payRate = Math.floor(payout.reduce((t, v) => v.w ? t + v.c * v.w : t + v.c * v.g, 0) / perms) / big
+        console.log(payRate)
+//        console.log(payRate, payout.map(p => {
+//          return {c: p.c, cp: p.c / perms / big, p: p.p}
+//        }))
+      }
+
       function spin() {
         if (null === intId && state[0] >= state[1]) {
           let prev = document.getElementsByClassName('preview')
@@ -195,7 +220,6 @@
                       prev[i].setAttribute('src', 'images/sym' + b + '.png')
                     })
           */
-          console.log(win)
           // pixel to be moved up from offset divided by step size
           steps = win.map((s, i) => (off[i] + (sym[i].length - sym[i].indexOf(s)) * height) / step + i * sym[i].length * height / step)
           state[0] -= state[1]
@@ -224,12 +248,13 @@
             return win.every((w, i) => w === p.s[i] || p.s[i] === -1)
           })
           if (pay) {
-            console.log(pay)
+            pay.c++
             if (pay.w) {
               state[2] += pay.w * state[1]
             } else {
               state[0] += pay.g
             }
+            console.log(pay)
             showState()
           }
           intId = null
