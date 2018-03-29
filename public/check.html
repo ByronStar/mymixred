@@ -28,6 +28,11 @@
             display: inline-block;
             padding: 20px;
             background-color: #fe9720;
+            border-radius: 8px;
+        }
+
+        .glow {
+            box-shadow: 0 0 5px 8px #ffffff, 0 0 10px 8px #ffff00, 0 0 15px 8px #ffff00;
         }
 
         #info {
@@ -68,6 +73,13 @@
             height: 300px;
         }
 
+        .spin {
+            position: absolute;
+            top:0;
+            left:0;
+            box-shadow: inset 0 0 5px 4px #ffffff;
+        }
+        
         .push {
             display: inline-block;
             margin: 5px;
@@ -85,6 +97,7 @@
             cursor: pointer;
             text-align: center;
             vertical-align: middle;
+            box-shadow: 0 0 5px 2px #fffba7, 0 0 10px 2px #ffff00, 0 0 15px 2px #ffff00;
         }
 
         .push:hover {
@@ -126,6 +139,7 @@
       ]
 
       let intId = null
+      let blinkId = null
       let step = 50
       let height = 200
       let off = []
@@ -134,10 +148,24 @@
       let info
       let win
       let state = [10, 1, 0, 0]
-      let cfs_button = new Audio('sounds/cfs_ping.mp3');
+      let isMuted = true
+      let cfs_ping = new Audio('sounds/cfs_ping.mp3');
+      let cfs_pong = new Audio('sounds/cfs_pong.mp3');
       let cfs_spin = new Audio('sounds/cfs_spin.mp3');
-//      let cfs_button = new Audio('sounds/cfs_button.mp3');
-//      let cfs_button = new Audio('sounds/cfs_button.wav');
+      let cfs_win = new Audio('sounds/cfs_win.mp3');
+      //      cfs_spin.preload = true
+
+      cfs_spin.addEventListener('loadstart', function () {
+        console.log('START')
+      })
+      cfs_spin.addEventListener('loadedmetadata', function () {
+        console.log('META', cfs_spin.duration)
+      })
+      cfs_spin.addEventListener('loadeddata', function () {
+        console.log('DATA')
+      })
+      //      let cfs_button = new Audio('sounds/cfs_button.mp3');
+      //      let cfs_button = new Audio('sounds/cfs_button.wav');
 
       let showState = function () {
         state.forEach((v, i) => {
@@ -181,20 +209,28 @@
 
       function paywin() {
         if (state[0] === 0) {
+          playSound(cfs_ping)
           state[0] = state[2]
           state[2] = 0
           showState()
+        } else {
+          playSound(cfs_pong)
         }
       }
 
       function bet(v) {
         if (v < 0 && state[1] > 1) {
+          playSound(cfs_ping)
           state[1] += v
           showState()
-        }
-        if (v > 0 && state[1] < 4) {
-          state[1] += v
-          showState()
+        } else {
+          if (v > 0 && state[1] < 4) {
+            playSound(cfs_ping)
+            state[1] += v
+            showState()
+          } else {
+            playSound(cfs_pong)
+          }
         }
       }
 
@@ -215,9 +251,28 @@
 //        }))
       }
 
+      function playSound(sound) {
+        if (!isMuted) {
+          sound.play();
+        }
+      }
+
+      function blink(cfg) {
+        if (cfg.cnt > 0) {
+          document.getElementById('frame').classList.toggle("glow");
+          cfg.cnt--
+        } else {
+          clearInterval(blinkId)
+        }
+      }
+
       function spin() {
         if (null === intId && state[0] >= state[1]) {
-          cfs_spin.play();
+          playSound(cfs_spin)
+          if (null != blinkId) {
+            clearInterval(blinkId)
+          }
+          document.getElementById('frame').classList.remove("glow");
           let prev = document.getElementsByClassName('preview')
           win = sym.map(s => Math.floor(Math.random() * s.length))
           /*
@@ -248,11 +303,16 @@
           }
         })
         if (finish) {
+          // seek to end sequence
+          cfs_spin.currentTime = 9.812
           clearInterval(intId)
           const pay = payout.find(p => {
             return win.every((w, i) => w === p.s[i] || p.s[i] === -1)
           })
           if (pay) {
+            document.getElementById('frame').classList.add("glow");
+            blinkId = setInterval(blink, 100, {cnt: 10})
+            playSound(cfs_win)
             pay.c++
             if (pay.w) {
               state[2] += pay.w * state[1]
@@ -298,15 +358,15 @@
         <div id="frame">
             <div style="position:relative;display: inline-block;">
                 <img id="reel0" style="object-position: 0 -0px;" src="images/reel0.png">
-                <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+                <img class="spin" src="images/slot.png">
             </div>
             <div style="position:relative;display: inline-block;">
                 <img id="reel1" style="object-position: 0 -0px;" src="images/reel1.png">
-                <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+                <img class="spin" src="images/slot.png">
             </div>
             <div style="position:relative;display: inline-block;">
                 <img id="reel2" style="object-position: 0 -0px;" src="images/reel2.png">
-                <img style="position: absolute;top:0;left:0;" src="images/slot.png">
+                <img class="spin" src="images/slot.png">
             </div>
         </div>
         <div style="margin-top: 20px;">
@@ -315,6 +375,7 @@
             <div class="push" onclick="bet(1)">BET +</div>
             <!--<div class="push" onclick="credit()">CREDIT</div>-->
             <div class="push" onclick="paywin()">PAY</div>
+            <input type="checkbox" checked onclick="isMuted =!isMuted">
         </div>
         <table id="payout" border="0">
             <col width="100">
