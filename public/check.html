@@ -134,6 +134,10 @@
       let info
       let win
       let state = [10, 1, 0, 0]
+      let cfs_button = new Audio('sounds/cfs_ping.mp3');
+      let cfs_spin = new Audio('sounds/cfs_spin.mp3');
+//      let cfs_button = new Audio('sounds/cfs_button.mp3');
+//      let cfs_button = new Audio('sounds/cfs_button.wav');
 
       let showState = function () {
         state.forEach((v, i) => {
@@ -213,6 +217,7 @@
 
       function spin() {
         if (null === intId && state[0] >= state[1]) {
+          cfs_spin.play();
           let prev = document.getElementsByClassName('preview')
           win = sym.map(s => Math.floor(Math.random() * s.length))
           /*
