@@ -304,7 +304,9 @@
         })
         if (finish) {
           // seek to end sequence
-          cfs_spin.currentTime = 9.812
+          if (!isMuted) {
+            cfs_spin.currentTime = 9.812
+          }
           clearInterval(intId)
           const pay = payout.find(p => {
             return win.every((w, i) => w === p.s[i] || p.s[i] === -1)
@@ -375,7 +377,7 @@
             <div class="push" onclick="bet(1)">BET +</div>
             <!--<div class="push" onclick="credit()">CREDIT</div>-->
             <div class="push" onclick="paywin()">PAY</div>
-            <input type="checkbox" checked onclick="isMuted =!isMuted">
+            <input type="checkbox" checked onclick="isMuted =!isMuted">Mute
         </div>
         <table id="payout" border="0">
             <col width="100">
