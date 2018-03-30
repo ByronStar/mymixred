@@ -10,13 +10,18 @@ DIR=./public/images/
 #convert -crop 330x400+780+470 ~/Downloads/slot-machine2.jpg ${DIR}sym7.png
 #convert -crop 330x400+750+880 ~/Downloads/slot-machine2.jpg ${DIR}sym8.png
 
+SIZE=165x165
+# for i in 0 1 2 3 4 5 6 7 8 0 1; do convert ${DIR}fsym${i}.png -background black -gravity center -extent ${SIZE} ${DIR}xsym${i}.png; done
+
 R=""
 for i in 0 1 2 3 4 5 6 7 8 0 1; do R="${R} ${DIR}sym${i}.png"; done
-convert ${R} -resize 165x200 -append ${DIR}reel0.png
+convert ${R} -append ${DIR}reel0.png
 R=""
 for i in 0 2 4 6 8 1 3 5 7 0 2; do R="${R} ${DIR}sym${i}.png"; done
-convert ${R} -resize 165x200 -append ${DIR}reel1.png
+convert ${R} -append ${DIR}reel1.png
 R=""
 for i in 0 3 6 1 4 7 2 5 8 0 3; do R="${R} ${DIR}sym${i}.png"; done
-convert ${R} -resize 165x200 -append ${DIR}reel2.png
-#convert ${DIR}sym1.png ${DIR}sym4.png ${DIR}sym7.png  ${DIR}sym2.png  ${DIR}sym5.png  ${DIR}sym8.png  ${DIR}sym3.png  ${DIR}sym0.png  ${DIR}sym6.png ${DIR}sym1.png -resize 165x200 -append ${DIR}reel2.png
+convert ${R} -append ${DIR}reel2.png
+
+#convert -size 330x400 xc:black ${DIR}symx.png
+convert -size ${SIZE} xc:black ${DIR}symx.png
