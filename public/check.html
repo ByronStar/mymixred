@@ -140,8 +140,8 @@
 
       let intId = null
       let blinkId = null
-      let step = 50
-      let height = 200
+      let step = 40
+      let height = 160
       let off = []
       let reels = []
       let steps
@@ -179,7 +179,7 @@
         reels.push(document.getElementById('reel2'))
         reels.forEach((r, i) => {
           off[i] = sym[i].length * height
-          r.setAttribute('style', "object-position: 0 -" + (off[i] - height / 4) + "px;")
+          r.setAttribute('style', "object-position: 0 -" + (off[i] - 60) + "px;")
         })
         info = document.getElementById('info')
         showState()
@@ -297,7 +297,7 @@
               off[i] = sym[i].length * height
             }
             finish = false
-            reels[i].setAttribute('style', "object-position: 0 -" + (off[i] - height / 4) + "px;")
+            reels[i].setAttribute('style', "object-position: 0 -" + (off[i] - 60) + "px;")
             off[i] -= step
             steps[i]--
           }

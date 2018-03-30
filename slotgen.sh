@@ -10,8 +10,9 @@ DIR=./public/images/
 #convert -crop 330x400+780+470 ~/Downloads/slot-machine2.jpg ${DIR}sym7.png
 #convert -crop 330x400+750+880 ~/Downloads/slot-machine2.jpg ${DIR}sym8.png
 
-SIZE=165x165
-# for i in 0 1 2 3 4 5 6 7 8 0 1; do convert ${DIR}fsym${i}.png -background black -gravity center -extent ${SIZE} ${DIR}xsym${i}.png; done
+SIZE=165x160
+#for i in 0 1 2 3 4 5 6 7 8 0 1; do convert ${DIR}fsym${i}.png -background black -gravity center -extent ${SIZE} ${DIR}xsym${i}.png; done
+for i in 0 1 2 3 4 5 6 7 8 0 1; do convert ${DIR}sym${i}.png -crop ${SIZE}+0+20 ${DIR}sym${i}.png; done
 
 R=""
 for i in 0 1 2 3 4 5 6 7 8 0 1; do R="${R} ${DIR}sym${i}.png"; done
